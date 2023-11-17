@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Set the character set for the document -->
+    <meta charset="UTF-8">
+    <!-- Set the title of the HTML document -->
+    <title>My Chat App</title>
+</head>
+<body>
+    <!-- Display the main heading for the page -->
+    <h1>My Chat App</h1>
+    <h3>Hi {% if current_user.is_authenticated %}{{current_user.username}} {%else%}Guest!{% endif %}</h3>
+
+    <!-- Form for entering the chat room -->
+    <form action="/chat">
+        <!-- Input field for entering the username -->
+        <div>
+            <label>Enter Username</label>
+            <input type="text" name="username">
+        </div>
+
+        <!-- Input field for entering the room ID -->
+        <div>
+            <label>Enter Room ID</label>
+            <input type="text" name="room">
+        </div>
+
+        <!-- Button to submit the form -->
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

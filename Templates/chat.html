@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Chat App</title>
+</head>
+<body>
+    <!-- Display the chat room title with dynamic room name -->
+    <h1>Welcome to chat room {{ room }}</h1>
+
+    <!-- Container for displaying messages -->
+    <div id="messages"></div>
+
+    <!-- Form for submitting messages -->
+    <form id="message_input_form">
+        <!-- Input field for typing messages -->
+        <input type="text" id="message_input" placeholder="Enter your message here">
+        <!-- Button to submit messages -->
+        <button type="submit">Send</button>
+    </form>
+</body>
+<!-- Include the Socket.IO library from CDN -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+<script>
+    // Connect to the Socket.IO server on the Flask backend
+    const socket = io.connect("http://127.0.0.1:5000");
+
+    // Event handler when the socket connection is established
+    socket.on('connect', function () {
+        // Emit a 'join_room' event to notify server about joining the room
+        socket.emit('join_room', {
+            username: "{{ username }}",
+            room: "{{ room }}"
+        });
+
+        // Get the message input element
+        let message_input = document.getElementById('message_input');
+
+        // Event handler for the message input form submission
+        document.getElementById('message_input_form').onsubmit = function (e) {
+            e.preventDefault();
+            // Get the trimmed message from the input field
+            let message = message_input.value.trim();
+            // If the message is not empty, emit 'send_message' event to the server
+            if (message.length) {
+                socket.emit('send_message', {
+                    username: "{{ username }}",
+                    room: "{{ room }}",
+                    message: message
+                })
+            }
+            // Clear the input field and focus on it
+            message_input.value = '';
+            message_input.focus();
+        }
+    });
+
+    // Event handler when the window is about to be closed or refreshed
+    window.onbeforeunload = function () {
+        // Emit 'leave_room' event to notify the server about leaving the room
+        socket.emit('leave_room', {
+            username: "{{ username }}",
+            room: "{{ room }}"
+        })
+    };
+
+    // Event handler for receiving messages from the server
+    socket.on('receive_message', function (data) {
+        console.log(data);
+        // Create a new message element and append it to the messages container
+        const newNode = document.createElement('div');
+        newNode.innerHTML = `<b>${data.username}:&nbsp;</b> ${data.message}`;
+        document.getElementById('messages').appendChild(newNode);
+    });
+
+    // Event handler for receiving join room announcements from the server
+    socket.on('join_room_announcement', function (data) {
+        console.log(data);
+        // Display a message when a user other than the current one joins the room
+        if (data.username !== "{{ username }}") {
+            const newNode = document.createElement('div');
+            newNode.innerHTML = `<b>${data.username}</b> has joined the room`;
+            document.getElementById('messages').appendChild(newNode);
+        }
+    });
+
+    // Event handler for receiving leave room announcements from the server
+    socket.on('leave_room_announcement', function (data) {
+        console.log(data);
+        // Display a message when a user leaves the room
+        const newNode = document.createElement('div');
+        newNode.innerHTML = `<b>${data.username}</b> has left the room`;
+        document.getElementById('messages').appendChild(newNode);
+    });
+</script>
+</html>
